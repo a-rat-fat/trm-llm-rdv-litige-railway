@@ -1,0 +1,12 @@
+[
+  {
+    "id": "cli_ciblex",
+    "name": "Ciblex",
+    "contact_email": "exploitation@ciblex.fr"
+  },
+  {
+    "id": "cli_walden",
+    "name": "Walden",
+    "contact_email": "ops@walden.eu"
+  }
+]

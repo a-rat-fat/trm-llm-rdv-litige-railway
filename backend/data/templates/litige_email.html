@@ -1,0 +1,14 @@
+<p>Bonjour,</p>
+<p>Nous ouvrons un dossier de <strong>litige {{ type }}</strong> concernant la <strong>commande {{ order_ref }}</strong> (client {{ client_name }}).</p>
+<ul>
+  <li>ETA prévue : {{ eta_expected }}</li>
+  <li>ETA réelle : {{ eta_real }}</li>
+  <li>Détails : {{ details }}</li>
+  <li>Évaluation initiale : {{ amount_estimated_eur }}</li>
+</ul>
+<p>Actions proposées :</p>
+<ol>
+{% for a in actions %}<li>{{ a }}</li>{% endfor %}
+</ol>
+<p>Contact référent : {{ contact_email }}</p>
+<p>Cordialement,<br>Exploitation</p>

@@ -1,0 +1,21 @@
+[
+  {
+    "id": "site_dijon_dc",
+    "name": "Dijon DC",
+    "blackout_weekdays": [
+      6
+    ],
+    "constraints": [
+      "rdv_obligatoire",
+      "gabarit>3.8m interdit quai 2"
+    ]
+  },
+  {
+    "id": "site_paris_hub",
+    "name": "Paris Hub",
+    "blackout_weekdays": [],
+    "constraints": [
+      "pas de hayon sur quai 5 6h-8h"
+    ]
+  }
+]

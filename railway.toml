@@ -1,0 +1,10 @@
+[build]
+builder = "DOCKERFILE"
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 100
+
+[env]
+PORT = "8080"
+DATA_PATH = "/app/data"

@@ -1,0 +1,17 @@
+Bonjour,
+
+Nous ouvrons un dossier de litige {{ type }} concernant la commande {{ order_ref }} (client {{ client_name }}).
+
+- ETA prévue : {{ eta_expected }}
+- ETA réelle : {{ eta_real }}
+- Détails : {{ details }}
+- Évaluation initiale : {{ amount_estimated_eur }}
+
+Actions proposées :
+{% for a in actions %}- {{ a }}
+{% endfor %}
+
+Contact référent : {{ contact_email }}
+
+Cordialement,
+Exploitation

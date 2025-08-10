@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TRM Assistant — RDV & Litiges</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background:#0e1116; color:#e8e8e8; }
+    header { padding: 16px; background:#161b22; border-bottom:1px solid #2c313a;}
+    main { padding: 16px; display:grid; gap:24px; grid-template-columns: 1fr 1fr; }
+    section { background:#161b22; border:1px solid #2c313a; border-radius:8px; padding:16px; }
+    h2 { margin-top:0; }
+    label { display:block; margin:8px 0 4px; }
+    input, select, textarea { width: 100%; padding: 8px; background:#0e1116; color:#e8e8e8; border:1px solid #2c313a; border-radius:6px; }
+    button { padding:10px 14px; border:1px solid #2c313a; background:#0e1116; color:#e8e8e8; border-radius:6px; cursor:pointer;}
+    .result { margin-top:12px; padding:12px; background:#0e1116; border:1px dashed #2c313a; border-radius:6px; white-space:pre-wrap; }
+    .slots { display:grid; gap:8px; }
+    .slot { padding:8px; border:1px solid #2c313a; border-radius:6px; }
+    @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<header>
+  <h1>TRM Assistant — RDV & Litiges (MVP)</h1>
+</header>
+<main>
+  <section>
+    <h2>Proposer des créneaux RDV</h2>
+    <label>Client ID</label>
+    <input id="rdv_client" value="cli_ciblex">
+    <label>Site ID</label>
+    <input id="rdv_site" value="site_dijon_dc">
+    <label>Date souhaitée</label>
+    <input id="rdv_date" type="date">
+    <label>Fenêtre</label>
+    <select id="rdv_window">
+      <option value="">FULL</option>
+      <option value="AM">AM</option>
+      <option value="PM">PM</option>
+    </select>
+    <label>Durée (min)</label>
+    <input id="rdv_duration" type="number" value="30">
+    <button onclick="suggestSlots()">Suggérer</button>
+    <div id="rdv_out" class="slots"></div>
+  </section>
+
+  <section>
+    <h2>Générer un e-mail de litige</h2>
+    <label>Type</label>
+    <select id="litige_type">
+      <option>retard</option>
+      <option>avarie</option>
+      <option>manquant</option>
+      <option>inversion</option>
+      <option>non_conformite</option>
+    </select>
+    <label>Client ID</label>
+    <input id="litige_client" value="cli_ciblex">
+    <label>Référence commande</label>
+    <input id="litige_ref" placeholder="CMD-2025-0001">
+    <label>ETA prévue</label>
+    <input id="litige_eta_expected" placeholder="2025-08-10 10:00">
+    <label>ETA réelle</label>
+    <input id="litige_eta_real" placeholder="2025-08-10 11:15">
+    <label>Détails</label>
+    <textarea id="litige_details" rows="3"></textarea>
+    <label>Estimation (EUR)</label>
+    <input id="litige_amount" type="number" step="0.01">
+    <button onclick="draftLitige()">Générer</button>
+    <div id="litige_out" class="result"></div>
+  </section>
+</main>
+<script>
+const API = '';
+
+function isoDate(d) {
+  const tzoffset = d.getTimezoneOffset() * 60000;
+  return new Date(d - tzoffset).toISOString().slice(0,10);
+}
+document.getElementById('rdv_date').value = isoDate(new Date());
+
+async function suggestSlots() {
+  const payload = {
+    client_id: document.getElementById('rdv_client').value,
+    site_id: document.getElementById('rdv_site').value,
+    desired_date: document.getElementById('rdv_date').value,
+    window: document.getElementById('rdv_window').value || null,
+    duration_min: parseInt(document.getElementById('rdv_duration').value || "30")
+  };
+  const res = await fetch(`/api/rdv/suggest_slots`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+  const data = await res.json();
+  const out = document.getElementById('rdv_out');
+  out.innerHTML = '';
+  if (!data.length) { out.innerHTML = '<div class="result">Aucun créneau proposé.</div>'; return; }
+  data.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'slot';
+    el.textContent = `${s.slot_start} → ${s.slot_end}  (score ${Math.round(s.confidence*100)}%) — ${s.rationale}`;
+    out.appendChild(el);
+  });
+}
+
+async function draftLitige() {
+  const payload = {
+    type: document.getElementById('litige_type').value,
+    client_id: document.getElementById('litige_client').value,
+    order_ref: document.getElementById('litige_ref').value,
+    eta_expected: document.getElementById('litige_eta_expected').value || null,
+    eta_real: document.getElementById('litige_eta_real').value || null,
+    details: document.getElementById('litige_details').value || null,
+    amount_estimated_eur: parseFloat(document.getElementById('litige_amount').value || "0") || null
+  };
+  const res = await fetch(`/api/litige/draft_email`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+  const data = await res.json();
+  const out = document.getElementById('litige_out');
+  out.innerHTML = `Sujet: ${data.subject}
+
+--- HTML ---
+${data.body_html}
+
+--- TEXTE ---
+${data.body_text}
+
+Actions: ${data.suggested_actions.join(' | ')}`;
+}
+</script>
+</body>
+</html>
